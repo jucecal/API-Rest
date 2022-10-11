@@ -1,6 +1,6 @@
 const Tipo = require('../model/Tipo');
 const { validationResult } = require('express-validator');
-const {request} = require('express');
+const { request } = require('express');
 
 exports.Inicio = (req, res) => {
     const moduloTipo = {
@@ -38,6 +38,22 @@ exports.Inicio = (req, res) => {
 exports.Listar = async (req, res) => {
     const listarTipos = await Tipo.findAll();
     res.json(listarTipos);
+}
+
+exports.buscarId = async (req, res) => {
+    const { id } = req.query;
+    const validacion = validationResult(req);
+    if (!validacion.isEmpty()) {
+        console.log(validacion.errors);
+        res.json({ msj: 'Errores en los datos enviados' });
+    } else {
+        const listarTipos = await Tipo.findAll({
+            where: {
+                id
+            }
+        });
+        res.json(listarTipos);
+    }
 }
 
 exports.Guardar = async (req, res) => {
