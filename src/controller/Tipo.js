@@ -35,6 +35,7 @@ exports.Inicio = (req, res) => {
     }
     res.json(moduloTipo);
 }
+
 exports.Listar = async (req, res) => {
     const listarTipos = await Tipo.findAll();
     res.json(listarTipos);
