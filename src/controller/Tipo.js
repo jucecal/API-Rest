@@ -1,6 +1,7 @@
 const Tipo = require('../model/Tipo');
 const { validationResult } = require('express-validator');
 const { request } = require('express');
+const { Op } = require('sequelize');
 
 exports.Inicio = (req, res) => {
     const moduloTipo = {
@@ -42,15 +43,37 @@ exports.Listar = async (req, res) => {
 }
 
 exports.buscarId = async (req, res) => {
-    const { id } = req.query;
     const validacion = validationResult(req);
     if (!validacion.isEmpty()) {
         console.log(validacion.errors);
         res.json({ msj: 'Errores en los datos enviados' });
     } else {
+        const { id } = req.query;
         const listarTipos = await Tipo.findAll({
             where: {
                 id
+            }
+        });
+        res.json(listarTipos);
+    }
+}
+
+exports.buscarNombre = async (req, res) => {
+    const validacion = validationResult(req);
+    if (!validacion.isEmpty()) {
+        console.log(validacion.errors);
+        res.json({ msj: 'Errores en los datos enviados' });
+    } else {
+        const { nombre } = req.query;
+        const listarTipos = await Tipo.findAll({
+            attributes:[['nombre', 'Nombre tipo'], 'imagen'],
+            where: {
+                [Op.and]: {
+                    nombre: {
+                        [Op.like]: nombre
+                    },
+                    activo: true
+                }
             }
         });
         res.json(listarTipos);
