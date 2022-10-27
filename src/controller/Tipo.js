@@ -1,7 +1,17 @@
 const Tipo = require('../model/Tipo');
 const { validationResult } = require('express-validator');
 const { request } = require('express');
+const MSJ = require('../componentes/mensaje');
 const { Op } = require('sequelize');
+const fs = require('fs');
+const path = require('path');
+var errores = [];
+var data = [];
+var error = {
+    msg: '',
+    parametro: ''
+};
+
 
 exports.Inicio = (req, res) => {
     const moduloTipo = {
@@ -66,7 +76,7 @@ exports.buscarNombre = async (req, res) => {
     } else {
         const { nombre } = req.query;
         const listarTipos = await Tipo.findAll({
-            attributes:[['nombre', 'Nombre tipo'], 'imagen'],
+            attributes: [['nombre', 'Nombre tipo'], 'imagen'],
             where: {
                 [Op.and]: {
                     nombre: {
@@ -151,3 +161,50 @@ exports.Eliminar = async (req, res) => {
             })
     }
 }
+
+exports.RecibirImagen = async (req, res) => {
+    const { filename } = req.file;
+    const { id } = req.body;
+    //console.log(req);
+    console.log(filename);
+    try {
+        errores = [];
+        data = [];
+        var buscarTipo = await Tipo.findOne({ where: { id } });
+        if (!buscarTipo) {
+            const buscarImagen = fs.existsSync(path.join(__dirname, '../public/img/Tipos/' + filename));
+            if (!buscarImagen)
+                console.log('La imagen no existe');
+            else {
+                fs.unlinkSync(path.join(__dirname, '../public/img/Tipos/' + filename));
+                console.log('Imagen eliminada');
+            }
+            error.msg = 'El id del tipo no existe. Se elimino la imagen enviada';
+            error.parametro = 'id';
+            errores.push(error);
+            MSJ("Peticion ejecutada correctamente", 200, [], errores, res);
+        } else {
+            const buscarImagen = fs.existsSync(path.join(__dirname, '../public/img/tipos/' + buscarTipo.imagen));
+            if (!buscarImagen)
+                console.log('No encontro la imagen');
+            else {
+                fs.unlinkSync(path.join(__dirname, '../public/img/tipos/' + buscarTipo.imagen));
+                console.log('Imagen eliminada');
+            }
+            buscarTipo.imagen = filename;
+            await buscarTipo.save()
+                .then((data) => {
+                    MSJ('Peticion ejecutada correctamente', 200, data, errores, res);
+                })
+                .catch((error) => {
+                    errores.push(error);
+                    MSJ('Peticion ejecutada correctamente', 200, [], errores, res);
+                });
+        }
+    } catch (error) {
+        console.log(error);
+        errores.push(error);
+        MSJ('Error al ejecutar la peticion', 500, [], errores, res);
+    }
+}
+

@@ -1,5 +1,7 @@
 const express = require('express');
 const morgan = require('morgan');
+const path = require('path');
+require('dotenv').config();
 const db = require('./config/db');
 const Modelos = require('./model');
 const app = express();
@@ -8,6 +10,7 @@ app.use(morgan("combined"));
 app.use(express.urlencoded({extended:false}));
 app.use(express.json());
 app.use('/api/', require('./route'));
+app.use('/api/imagenes/', express.static(path.join(__dirname, 'public/img')));
 app.use('/api/tipos', require('./route/Tipo'));
 app.use('/api/usuarios', require('./route/Usuario'));
 app.use('/api/clientes', require('./route/Cliente'));
