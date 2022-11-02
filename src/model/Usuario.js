@@ -15,7 +15,7 @@ const Usuario = db.define(
             allowNull: false
         },
 
-        password:
+        contrasena:
         {
             type: DataTypes.STRING(250),
             allowNull: false
@@ -44,6 +44,26 @@ const Usuario = db.define(
     },
     {
         tableName: 'usuarios',
+        hooks: {
+            beforeCreate(usuario) {
+                const hash = bcrypt.hashSync(usuario.contrasena, 10);
+                usuario.contrasena = hash;
+            },
+            beforeUpdate(usuario) {
+                if (usuario.contrasena) {
+                    const hash = bcrypt.hashSync(usuario.contrasena, 10);
+                    usuario.contrasena = hash;
+                }
+                if (usuario.fallido >= 5)
+                    usuario.estado = 'BL';
+            },
+        }
+
     }
 );
+
+Usuario.prototype.VerificarContrasena = (con, com) => {
+    return bcrypt.compareSync(con, com);
+};
+
 module.exports = Usuario;
